@@ -13,3 +13,6 @@ Install autocompletion by running:
 ```bash
 cont --install-completion
 ```
+
+By defaul if you specify container name the corresponding named volume is going to 
+be created where it's possible.
