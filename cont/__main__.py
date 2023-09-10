@@ -62,9 +62,9 @@ def pg(
         ports={
             "5432": port,
         },
-        volumes={
-            f"{db_name}-pg-db": {"bind": "/var/lib/postgresql/data", "mode": "rw"}
-        },
+        volumes={f"{name}-pg-db": {"bind": "/var/lib/postgresql/data", "mode": "rw"}}
+        if name is not None
+        else None,
         environment={
             "POSTGRES_PASSWORD": db_name,
             "POSTGRES_USER": db_name,
@@ -104,9 +104,9 @@ def timescale(
         ports={
             "5432": port,
         },
-        volumes={
-            f"{db_name}-ts-db": {"bind": "/var/lib/postgresql/data", "mode": "rw"}
-        },
+        volumes={f"{name}-ts-db": {"bind": "/var/lib/postgresql/data", "mode": "rw"}}
+        if name is not None
+        else None,
         environment={
             "POSTGRES_PASSWORD": db_name,
             "POSTGRES_USER": db_name,
@@ -212,7 +212,9 @@ def scylla(
         ports={
             "9042": port,
         },
-        volumes={f"{name}-scylla-db": {"bind": "/var/lib/scylla", "mode": "rw"}},
+        volumes={f"{name}-scylla-db": {"bind": "/var/lib/scylla", "mode": "rw"}}
+        if name is not None
+        else None,
     )
     secho("Container ", nl=False)
     secho(container.short_id, nl=False, fg=colors.GREEN)
