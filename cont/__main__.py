@@ -78,7 +78,7 @@ def pg(
     print_network_settings(docker, container.id)
 
 
-@cli.command(help="Run postgres container")
+@cli.command(help="Run timescaledb container")
 def timescale(
     db_name: str = Argument(
         ...,
