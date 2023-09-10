@@ -24,7 +24,7 @@ def wait_healtcheck(docker: DockerClient, container_id: str) -> None:
 def pull_img(docker: DockerClient, repo: str, tag: str) -> str:
     with Halo(f"Pulling image {repo}:{tag}", text_color="green"):
         img = docker.images.pull(repo, tag=tag)
-    return img.id
+    return img.attrs["RepoTags"][0]
 
 
 def print_network_settings(docker: DockerClient, container_id: str) -> None:
@@ -194,8 +194,8 @@ def redis(
 @cli.command(help="Run scylla container")
 def scylla(
     name: Optional[str] = Argument(None, help="Container name"),
-    port: int = Option(9042),
-    tag: str = Option("5.2"),
+    port: int = Option(9042, help="Port to open for scylla"),
+    tag: str = Option("5.2", help="Image tag"),
 ) -> None:
     docker = from_env()
     img = pull_img(docker, "scylladb/scylla", tag)
@@ -218,6 +218,42 @@ def scylla(
             "9042": port,
         },
         volumes=volumes,
+    )
+    secho("Container ", nl=False)
+    secho(container.short_id, nl=False, fg=colors.GREEN)
+    secho(" successfully started")
+    wait_healtcheck(docker, container.id)
+    print_network_settings(docker, container.id)
+
+
+@cli.command(help="Run NATS container")
+def nats(
+    name: Optional[str] = Argument(None, help="Container name"),
+    port: int = Option(4222, help="Port to publish for nats protocol"),
+    tag: str = Option("2.9-alpine", help="Image tag"),
+):
+    docker = from_env()
+    img = pull_img(docker, "nats", tag)
+    container = docker.containers.run(
+        name=name,
+        image=img,
+        remove=True,
+        detach=True,
+        command=["-m", "8222", "--jetstream"],
+        healthcheck={
+            "test": [
+                "CMD",
+                "sh",
+                "-c",
+                "wget http://localhost:8222/healthz -q -O - | xargs | grep ok || exit 1",
+            ],
+            "interval": 5 * 1000 * 1000000,
+            "timeout": 3 * 1000 * 1000000,
+            "retries": 20,
+        },
+        ports={
+            "4222": port,
+        },
     )
     secho("Container ", nl=False)
     secho(container.short_id, nl=False, fg=colors.GREEN)
