@@ -5,7 +5,7 @@ This is set of sctipts to fast run containers for local development.
 Just install it using `pip` or `pipx` and start using.
 
 ```bash
-pipx install git+https://github.com/s3rius/cont.git --force
+pipx install my-cont 
 ```
 
 Install autocompletion by running:
