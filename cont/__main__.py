@@ -38,16 +38,19 @@ def print_network_settings(docker: DockerClient, container_id: str) -> None:
 
 @cli.command(help="Run postgres container")
 def pg(
-    db_name: str = Argument(
-        ...,
+    name: Optional[str] = Argument(None, help="Container name"),
+    db_name: str = Option(
+        "postgres",
         help="Name of the database. User and password match this value",
     ),
-    name: Optional[str] = Option(None, help="Container name"),
     port: int = Option(5432, help="Host port to expose"),
     tag: str = Option("15.4-bullseye", help="Image tag to use"),
 ) -> None:
     docker = from_env()
     img = pull_img(docker, "postgres", tag)
+    volumes = None
+    if name is not None:
+        volumes = {f"{name}-pg-db": {"bind": "/var/lib/postgresql/data", "mode": "rw"}}
     container = docker.containers.run(
         name=name,
         image=img,
@@ -62,9 +65,7 @@ def pg(
         ports={
             "5432": port,
         },
-        volumes={f"{name}-pg-db": {"bind": "/var/lib/postgresql/data", "mode": "rw"}}
-        if name is not None
-        else None,
+        volumes=volumes,
         environment={
             "POSTGRES_PASSWORD": db_name,
             "POSTGRES_USER": db_name,
@@ -80,16 +81,19 @@ def pg(
 
 @cli.command(help="Run timescaledb container")
 def timescale(
-    db_name: str = Argument(
-        ...,
+    name: Optional[str] = Argument(None, help="Container name"),
+    db_name: str = Option(
+        "timescale",
         help="Name of the database. User and password match this value",
     ),
-    name: Optional[str] = Option(None, help="Container name"),
     port: int = Option(5432, help="Host port to expose"),
     tag: str = Option("2.11.2-pg15", help="Image tag to use"),
 ) -> None:
     docker = from_env()
     img = pull_img(docker, "timescale/timescaledb", tag)
+    volumes = None
+    if name is not None:
+        volumes = {f"{name}-pg-db": {"bind": "/var/lib/postgresql/data", "mode": "rw"}}
     container = docker.containers.run(
         name=name,
         image=img,
@@ -104,9 +108,7 @@ def timescale(
         ports={
             "5432": port,
         },
-        volumes={f"{name}-ts-db": {"bind": "/var/lib/postgresql/data", "mode": "rw"}}
-        if name is not None
-        else None,
+        volumes=volumes,
         environment={
             "POSTGRES_PASSWORD": db_name,
             "POSTGRES_USER": db_name,
@@ -122,9 +124,9 @@ def timescale(
 
 @cli.command(help="Run rabbitMQ container")
 def rmq(
+    name: Optional[str] = Argument(None, help="Container name"),
     port: int = Option(5672, help="Port to open for AMQP protocol"),
     ui_port: int = Option(15672, help="Port to open for management UI"),
-    name: Optional[str] = Option(None, help="Container name"),
     username: str = Option("guest", help="Admin username"),
     password: str = Option("guest", help="Admin password"),
     tag: str = Option("3.10.23-management", help="Image tag to use"),
@@ -161,7 +163,7 @@ def rmq(
 
 @cli.command(help="Run redis container")
 def redis(
-    name: str = Option(None, help="Name of the container"),
+    name: Optional[str] = Argument(None, help="Name of the container"),
     port: int = Option(6379, help="Port to open for redis protocol"),
     tag: str = Option("7.2", help="Image tag to use"),
 ):
@@ -191,12 +193,15 @@ def redis(
 
 @cli.command(help="Run scylla container")
 def scylla(
-    name: Optional[str] = Option(None, help="Container name"),
+    name: Optional[str] = Argument(None, help="Container name"),
     port: int = Option(9042),
     tag: str = Option("5.2"),
 ) -> None:
     docker = from_env()
     img = pull_img(docker, "scylladb/scylla", tag)
+    volumes = None
+    if name is not None:
+        volumes = {f"{name}-scylla-db": {"bind": "/var/lib/scylla", "mode": "rw"}}
     container = docker.containers.run(
         name=name,
         image=img,
@@ -212,9 +217,7 @@ def scylla(
         ports={
             "9042": port,
         },
-        volumes={f"{name}-scylla-db": {"bind": "/var/lib/scylla", "mode": "rw"}}
-        if name is not None
-        else None,
+        volumes=volumes,
     )
     secho("Container ", nl=False)
     secho(container.short_id, nl=False, fg=colors.GREEN)
