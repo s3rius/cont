@@ -24,7 +24,7 @@ def wait_healtcheck(docker: DockerClient, container_id: str) -> None:
 def pull_img(docker: DockerClient, repo: str, tag: str) -> str:
     with Halo(f"Pulling image {repo}:{tag}", text_color="green"):
         img = docker.images.pull(repo, tag=tag)
-    return img.attrs['RepoTags'][0]
+    return img.attrs["RepoTags"][0]
 
 
 def print_network_settings(docker: DockerClient, container_id: str) -> None:
