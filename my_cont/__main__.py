@@ -317,7 +317,7 @@ def nats(
     print_network_settings(docker, container.id)
 
 
-@cli.command(help="Run postgres container")
+@cli.command(help="Run zookeeper container")
 def zk(
     name: Optional[str] = Argument(None, help="Container name"),
     network: str = Option(
