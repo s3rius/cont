@@ -318,6 +318,47 @@ def nats(
     print_network_settings(docker, container.id)
 
 
+@cli.command(help="Run postgres container")
+def zk(
+    name: Optional[str] = Argument(None, help="Container name"),
+    network: str = Option(
+        DEFAULT_NETWORK_NAME,
+        help="Network name to attach container to",
+    ),
+    port: int = Option(2181, help="Host port to expose"),
+    tag: str = Option("3.8.1", help="Image tag to use"),
+) -> None:
+    docker = from_env()
+    img = pull_img(docker, "bitnami/zookeeper", tag)
+    declare_network(docker, network)
+    container = docker.containers.run(
+        name=name,
+        image=img,
+        remove=True,
+        detach=True,
+        network=network,
+        hostname=name or "zk",
+        healthcheck={
+            "test": "zkServer.sh status",
+            "interval": 1 * 1000 * 1000000,
+            "timeout": 3 * 1000 * 1000000,
+            "retries": 30,
+        },
+        ports={
+            "2181": port,
+        },
+        environment={
+            "ALLOW_ANONYMOUS_LOGIN": "yes",
+            "ZOO_LOG_LEVEL": "ERROR",
+        },
+    )
+    secho("Container ", nl=False)
+    secho(container.short_id, nl=False, fg=colors.GREEN)
+    secho(" successfully started")
+    wait_healtcheck(docker, container.id)
+    print_network_settings(docker, container.id)
+
+
 def main():
     cli()
 
