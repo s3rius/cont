@@ -282,7 +282,6 @@ def nats(
         DEFAULT_NETWORK_NAME,
         help="Network name to attach container to",
     ),
-    hostname: str = Option("nats", help="Hostname inside the network"),
     tag: str = Option("2.9-alpine", help="Image tag"),
 ):
     docker = from_env()
