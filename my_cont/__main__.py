@@ -358,6 +358,55 @@ def zk(
     print_network_settings(docker, container.id)
 
 
+@cli.command(help="Run kafka container")
+def kafka(
+    name: Optional[str] = Argument(None, help="Container name"),
+    network: str = Option(
+        DEFAULT_NETWORK_NAME,
+        help="Network name to attach container to",
+    ),
+    port: int = Option(9094, help="Host port to expose"),
+    tag: str = Option("3.7.1-debian-12-r0", help="Image tag to use"),
+) -> None:
+    docker = from_env()
+    img = pull_img(docker, "bitnami/kafka", tag)
+    declare_network(docker, network)
+    hostname = name or "kafka"
+    container = docker.containers.run(
+        name=name,
+        image=img,
+        remove=True,
+        detach=True,
+        network=network,
+        hostname=hostname,
+        healthcheck={
+            "test": "kafka-topics.sh --list --bootstrap-server localhost:9092",
+            "interval": 1 * 1000 * 1000000,
+            "timeout": 3 * 1000 * 1000000,
+            "retries": 30,
+        },
+        ports={
+            "9094": port,
+        },
+        environment={
+            "KAFKA_CFG_NODE_ID": "0",
+            "KAFKA_CFG_PROCESS_ROLES": "controller,broker",
+            "KAFKA_CFG_LISTENERS": "PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094",
+            "KAFKA_CFG_ADVERTISED_LISTENERS": "PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094",
+            "KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP": "CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT",
+            "KAFKA_CFG_CONTROLLER_QUORUM_VOTERS": f"0@{hostname}:9093",
+            "KAFKA_CFG_CONTROLLER_LISTENER_NAMES": "CONTROLLER",
+            "KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE": "true",
+            "KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR": "1",
+        },
+    )
+    secho("Container ", nl=False)
+    secho(container.short_id, nl=False, fg=colors.GREEN)
+    secho(" successfully started")
+    wait_healtcheck(docker, container.id)
+    print_network_settings(docker, container.id)
+
+
 def main():
     cli()
 
