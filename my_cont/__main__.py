@@ -2,6 +2,7 @@ import time
 from typing import Optional
 
 from docker import DockerClient, errors, from_env
+from docker.models.containers import Container
 from halo import Halo
 from typer import Argument, Option, Typer, colors, secho
 
@@ -49,6 +50,16 @@ def print_network_settings(docker: DockerClient, container_id: str) -> None:
         secho(nconfig["IPAddress"], fg=colors.GREEN)
 
 
+def container_ready(docker: DockerClient, cont: Container):
+    secho("Container ", nl=False)
+    secho(cont.name, nl=False)
+    secho(" with id ", nl=False)
+    secho(cont.short_id, nl=False, fg=colors.GREEN)
+    secho(" successfully started")
+    wait_healtcheck(docker, cont.id)
+    print_network_settings(docker, cont.id)
+
+
 @cli.command(help="Run postgres container")
 def pg(
     name: Optional[str] = Argument(None, help="Container name"),
@@ -61,7 +72,7 @@ def pg(
         help="Network name to attach container to",
     ),
     port: int = Option(5432, help="Host port to expose"),
-    tag: str = Option("15.4-bullseye", help="Image tag to use"),
+    tag: str = Option("16.3-bookworm", help="Image tag to use"),
 ) -> None:
     docker = from_env()
     img = pull_img(docker, "postgres", tag)
@@ -92,11 +103,7 @@ def pg(
             "POSTGRES_DB": db_name,
         },
     )
-    secho("Container ", nl=False)
-    secho(container.short_id, nl=False, fg=colors.GREEN)
-    secho(" successfully started")
-    wait_healtcheck(docker, container.id)
-    print_network_settings(docker, container.id)
+    container_ready(docker, container)
 
 
 @cli.command(help="Run timescaledb container")
@@ -111,7 +118,7 @@ def timescale(
         DEFAULT_NETWORK_NAME,
         help="Network name to attach container to",
     ),
-    tag: str = Option("2.11.2-pg15", help="Image tag to use"),
+    tag: str = Option("2.15.3-pg16", help="Image tag to use"),
 ) -> None:
     docker = from_env()
     img = pull_img(docker, "timescale/timescaledb", tag)
@@ -142,11 +149,7 @@ def timescale(
             "POSTGRES_DB": db_name,
         },
     )
-    secho("Container ", nl=False)
-    secho(container.short_id, nl=False, fg=colors.GREEN)
-    secho(" successfully started")
-    wait_healtcheck(docker, container.id)
-    print_network_settings(docker, container.id)
+    container_ready(docker, container)
 
 
 @cli.command(help="Run rabbitMQ container")
@@ -160,7 +163,7 @@ def rmq(
         DEFAULT_NETWORK_NAME,
         help="Network name to attach container to",
     ),
-    tag: str = Option("3.10.23-management", help="Image tag to use"),
+    tag: str = Option("3.13-management", help="Image tag to use"),
 ):
     docker = from_env()
     img = pull_img(docker, "rabbitmq", tag)
@@ -188,11 +191,7 @@ def rmq(
             "RABBITMQ_DEFAULT_VHOST": "/",
         },
     )
-    secho("Container ", nl=False)
-    secho(container.short_id, nl=False, fg=colors.GREEN)
-    secho(" successfully started")
-    wait_healtcheck(docker, container.id)
-    print_network_settings(docker, container.id)
+    container_ready(docker, container)
 
 
 @cli.command(help="Run redis container")
@@ -203,7 +202,7 @@ def redis(
         DEFAULT_NETWORK_NAME,
         help="Network name to attach container to",
     ),
-    tag: str = Option("7.2", help="Image tag to use"),
+    tag: str = Option("7-bookworm", help="Image tag to use"),
 ):
     docker = from_env()
     img = pull_img(docker, "redis", tag)
@@ -225,11 +224,7 @@ def redis(
             "6379": port,
         },
     )
-    secho("Container ", nl=False)
-    secho(container.short_id, nl=False, fg=colors.GREEN)
-    secho(" successfully started")
-    wait_healtcheck(docker, container.id)
-    print_network_settings(docker, container.id)
+    container_ready(docker, container)
 
 
 @cli.command(help="Run scylla container")
@@ -240,7 +235,7 @@ def scylla(
         DEFAULT_NETWORK_NAME,
         help="Network name to attach container to",
     ),
-    tag: str = Option("5.2", help="Image tag"),
+    tag: str = Option("6.0.1", help="Image tag"),
 ) -> None:
     docker = from_env()
     img = pull_img(docker, "scylladb/scylla", tag)
@@ -267,11 +262,7 @@ def scylla(
         },
         volumes=volumes,
     )
-    secho("Container ", nl=False)
-    secho(container.short_id, nl=False, fg=colors.GREEN)
-    secho(" successfully started")
-    wait_healtcheck(docker, container.id)
-    print_network_settings(docker, container.id)
+    container_ready(docker, container)
 
 
 @cli.command(help="Run NATS container")
@@ -310,11 +301,7 @@ def nats(
             "4222": port,
         },
     )
-    secho("Container ", nl=False)
-    secho(container.short_id, nl=False, fg=colors.GREEN)
-    secho(" successfully started")
-    wait_healtcheck(docker, container.id)
-    print_network_settings(docker, container.id)
+    container_ready(docker, container)
 
 
 @cli.command(help="Run zookeeper container")
@@ -325,7 +312,7 @@ def zk(
         help="Network name to attach container to",
     ),
     port: int = Option(2181, help="Host port to expose"),
-    tag: str = Option("3.8.1", help="Image tag to use"),
+    tag: str = Option("3.9.2", help="Image tag to use"),
 ) -> None:
     docker = from_env()
     img = pull_img(docker, "bitnami/zookeeper", tag)
@@ -351,11 +338,7 @@ def zk(
             "ZOO_LOG_LEVEL": "ERROR",
         },
     )
-    secho("Container ", nl=False)
-    secho(container.short_id, nl=False, fg=colors.GREEN)
-    secho(" successfully started")
-    wait_healtcheck(docker, container.id)
-    print_network_settings(docker, container.id)
+    container_ready(docker, container)
 
 
 @cli.command(help="Run kafka container")
@@ -366,7 +349,7 @@ def kafka(
         help="Network name to attach container to",
     ),
     port: int = Option(9094, help="Host port to expose"),
-    tag: str = Option("3.7.1-debian-12-r0", help="Image tag to use"),
+    tag: str = Option("3.7-debian-12", help="Image tag to use"),
 ) -> None:
     docker = from_env()
     img = pull_img(docker, "bitnami/kafka", tag)
@@ -400,11 +383,7 @@ def kafka(
             "KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR": "1",
         },
     )
-    secho("Container ", nl=False)
-    secho(container.short_id, nl=False, fg=colors.GREEN)
-    secho(" successfully started")
-    wait_healtcheck(docker, container.id)
-    print_network_settings(docker, container.id)
+    container_ready(docker, container)
 
 
 def main():
