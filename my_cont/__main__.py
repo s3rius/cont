@@ -273,7 +273,7 @@ def nats(
         DEFAULT_NETWORK_NAME,
         help="Network name to attach container to",
     ),
-    tag: str = Option("2.9-alpine", help="Image tag"),
+    tag: str = Option("2.10-alpine", help="Image tag"),
 ):
     docker = from_env()
     img = pull_img(docker, "nats", tag)
