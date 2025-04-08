@@ -72,7 +72,7 @@ def pg(
         help="Network name to attach container to",
     ),
     port: int = Option(5432, help="Host port to expose"),
-    tag: str = Option("16.3-bookworm", help="Image tag to use"),
+    tag: str = Option("17.4-bookworm", help="Image tag to use"),
 ) -> None:
     docker = from_env()
     img = pull_img(docker, "postgres", tag)
@@ -118,7 +118,7 @@ def timescale(
         DEFAULT_NETWORK_NAME,
         help="Network name to attach container to",
     ),
-    tag: str = Option("2.15.3-pg16", help="Image tag to use"),
+    tag: str = Option("2.19.2-pg17", help="Image tag to use"),
 ) -> None:
     docker = from_env()
     img = pull_img(docker, "timescale/timescaledb", tag)
@@ -163,7 +163,7 @@ def rmq(
         DEFAULT_NETWORK_NAME,
         help="Network name to attach container to",
     ),
-    tag: str = Option("3.13-management", help="Image tag to use"),
+    tag: str = Option("4-management", help="Image tag to use"),
 ):
     docker = from_env()
     img = pull_img(docker, "rabbitmq", tag)
@@ -235,7 +235,7 @@ def scylla(
         DEFAULT_NETWORK_NAME,
         help="Network name to attach container to",
     ),
-    tag: str = Option("6.0.1", help="Image tag"),
+    tag: str = Option("2025.1.0", help="Image tag"),
 ) -> None:
     docker = from_env()
     img = pull_img(docker, "scylladb/scylla", tag)
@@ -273,7 +273,7 @@ def nats(
         DEFAULT_NETWORK_NAME,
         help="Network name to attach container to",
     ),
-    tag: str = Option("2.10-alpine", help="Image tag"),
+    tag: str = Option("2-alpine", help="Image tag"),
 ):
     docker = from_env()
     img = pull_img(docker, "nats", tag)
@@ -312,7 +312,7 @@ def zk(
         help="Network name to attach container to",
     ),
     port: int = Option(2181, help="Host port to expose"),
-    tag: str = Option("3.9.2", help="Image tag to use"),
+    tag: str = Option("3.9.3", help="Image tag to use"),
 ) -> None:
     docker = from_env()
     img = pull_img(docker, "bitnami/zookeeper", tag)
@@ -349,7 +349,7 @@ def kafka(
         help="Network name to attach container to",
     ),
     port: int = Option(9094, help="Host port to expose"),
-    tag: str = Option("3.7-debian-12", help="Image tag to use"),
+    tag: str = Option("4.0-debian-12", help="Image tag to use"),
 ) -> None:
     docker = from_env()
     img = pull_img(docker, "bitnami/kafka", tag)
